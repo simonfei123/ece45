@@ -4,6 +4,7 @@ import time
 from matplotlib.figure import Figure
 from matplotlib.backends.backend_tkagg import (FigureCanvasTkAgg, NavigationToolbar2Tk)
 import numpy as np
+from scipy import signal
 
 def plot(y):
     # https://www.geeksforgeeks.org/how-to-embed-matplotlib-charts-in-tkinter-gui/
@@ -35,24 +36,25 @@ def plot(y):
     # placing the toolbar on the Tkinter window
     canvas.get_tk_widget().pack()
 
-def gen_sine():
+def wave_gen(wave_type='sine', duration=5.0, amplitude = 0.3, frequency = 440, phase = 0, duty = 0.5, width=1):
     # Samples per second
     sps = 44100
+    if wave_type=='sine':
+        each_sample_number = np.arange(duration * sps)
+        waveform = np.sin(2 * np.pi * (each_sample_number - 2*np.pi*phase) * frequency / sps)
+        waveform = waveform * amplitude
+        return waveform
+    if wave_type=='square':
+        each_sample_number = np.arange(duration * sps)
+        waveform = signal.square(2 * np.pi * (each_sample_number - 2*np.pi*phase) * frequency / sps, duty=duty)
+        waveform = waveform * amplitude
+        return waveform
+    if wave_type=='sawtooth':
+        each_sample_number = np.arange(duration * sps)
+        waveform = signal.sawtooth(2 * np.pi * (each_sample_number - 2*np.pi*phase) * frequency / sps, width=width)
+        waveform = waveform * amplitude
+        return waveform
 
-    # Frequency / pitch
-    freq_hz = 440.0
-
-    # Duration
-    duration_s = 5.0
-
-    # Attenuation so the sound is reasonable
-    atten = 0.3
-
-    # NumpPy magic to calculate the waveform
-    each_sample_number = np.arange(duration_s * sps)
-    waveform = np.sin(2 * np.pi * each_sample_number * freq_hz / sps)
-    waveform_quiet = waveform * atten
-    return waveform_quiet
 
 def play(waveform):
     # Samples per second
@@ -62,7 +64,7 @@ def play(waveform):
 
 
 window = tkinter.Tk()
-waveform = gen_sine()
+waveform = wave_gen('sawtooth',width=0.5)
 
 # button that displays the plot
 plot_button = tkinter.Button(master = window, 
