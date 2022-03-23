@@ -55,6 +55,52 @@ def wave_gen(wave_type='sine', duration=5.0, amplitude = 0.3, frequency = 440, p
         waveform = waveform * amplitude
         return waveform
 
+def butter_bandpass(lowcut, highcut, fs, order=5):
+    nyq = 0.5 * fs
+    low = lowcut / nyq
+    high = highcut / nyq
+    b, a = signal.butter(order, [low, high], btype='bandpass')
+    return b, a
+
+def butter_bandstop(lowcut, highcut, fs, order=5):
+    nyq = 0.5 * fs
+    low = lowcut / nyq
+    high = highcut / nyq
+    b, a = signal.butter(order, [low, high], btype='bandstop')
+    return b, a
+
+def butter_highpass(lowcut, fs, order=5):
+    nyq = 0.5 * fs
+    low = lowcut / nyq
+    b, a = signal.butter(order, low, btype='highpass')
+    return b, a
+
+def butter_lowpass(highcut, fs, order=5):
+    nyq = 0.5 * fs
+    high = highcut / nyq
+    b, a = signal.butter(order, high, btype='lowpass')
+    return b, a
+
+def filt(orig_signal, filt_type='bandpass', low = 10, high = 9000, order=5):
+    # Samples per second
+    sps = 44100
+    if filt_type=='bandpass':
+        b, a = butter_bandpass(low, high, sps, order=order)
+        y = signal.lfilter(b, a, orig_signal)
+        return y
+    if filt_type=='bandstop':
+        b, a = butter_bandstop(low, high, sps, order=order)
+        y = signal.lfilter(b, a, orig_signal)
+        return y
+    if filt_type=='highpass':
+        b, a = butter_highpass(low, sps, order=order)
+        y = signal.lfilter(b, a, orig_signal)
+        return y
+    if filt_type=='lowpass':
+        b, a = butter_lowpass(high, sps, order=order)
+        y = signal.lfilter(b, a, orig_signal)
+        return y
+
 
 def play(waveform):
     # Samples per second
@@ -65,6 +111,7 @@ def play(waveform):
 
 window = tkinter.Tk()
 waveform = wave_gen('sawtooth',width=0.5)
+waveform = filt(waveform,'lowpass')
 
 # button that displays the plot
 plot_button = tkinter.Button(master = window, 
