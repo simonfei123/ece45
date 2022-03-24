@@ -6,7 +6,7 @@ from matplotlib.backends.backend_tkagg import (FigureCanvasTkAgg, NavigationTool
 import numpy as np
 from scipy import signal
 
-def plot(y):
+def plot(y, x = None):
     # https://www.geeksforgeeks.org/how-to-embed-matplotlib-charts-in-tkinter-gui/
   
     # the figure that will contain the plot
@@ -17,7 +17,10 @@ def plot(y):
     plot1 = fig.add_subplot(111)
   
     # plotting the graph
-    plot1.plot(y)
+    if(x is None):
+        plot1.plot(y)
+    else:
+        plot1.plot(x,y)
   
     # creating the Tkinter canvas
     # containing the Matplotlib figure
@@ -81,7 +84,7 @@ def butter_lowpass(highcut, fs, order=5):
     b, a = signal.butter(order, high, btype='lowpass')
     return b, a
 
-def filt(orig_signal, filt_type='bandpass', low = 10, high = 9000, order=5):
+def filt(orig_signal, filt_type='bandpass', low = 10, high = 9000, order=5, multiplier = 4):
     # Samples per second
     sps = 44100
     if filt_type=='bandpass':
@@ -100,6 +103,22 @@ def filt(orig_signal, filt_type='bandpass', low = 10, high = 9000, order=5):
         b, a = butter_lowpass(high, sps, order=order)
         y = signal.lfilter(b, a, orig_signal)
         return y
+    if filt_type=='bandamp':
+        orig_psd = np.fft.fft(orig_signal)
+        filt_psd = orig_psd.copy()
+        n_freqs = len(orig_psd)
+        count_freqs = np.arange(n_freqs)
+        T = n_freqs/sps
+        freqs = count_freqs/T
+        for i, freq in enumerate(freqs):
+            if np.abs(freq) >= low and np.abs(freq) <= high:
+                filt_psd[i] = filt_psd[i] * multiplier
+        filt_signal = np.fft.ifft(filt_psd)
+        filt_2_psd = np.fft.fft(filt_signal.real)
+        # plot(np.abs(orig_psd),freqs)
+        # plot(np.abs(filt_psd),freqs)
+        # plot(np.abs(filt_2_psd),freqs)
+        return filt_signal.real
 
 
 def play(waveform):
@@ -110,8 +129,8 @@ def play(waveform):
 
 
 window = tkinter.Tk()
-waveform = wave_gen('sawtooth',width=0.5)
-waveform = filt(waveform,'lowpass')
+waveform = wave_gen('sine')
+waveform = filt(waveform,'bandamp')
 
 # button that displays the plot
 plot_button = tkinter.Button(master = window, 
