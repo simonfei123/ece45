@@ -153,20 +153,61 @@ def play(wave,frequency,duration,amplitude,duty,width):
     sd.play(waveform, sps)
 
 def new_options(window):
+    # option = tkinter.IntVar()
+    # option.set(0)
+    # option = tkinter.StringVar()
+    # option = ('filter')
     lb = tkinter.Listbox(window)
     lb.insert(0, 'filter')
     lb.insert(1, 'amplitude modulation')
     lb.insert(2, 'amplitude envelope')
     lb.insert(3, 'pitch envelope')
-    lb.grid()
+    lb.select_set(0)
+    selection = [0]
+    lb.grid(columnspan=4)
+    def clear(button,button2):
+        lb.destroy()
+        button.destroy()
+        button2.destroy()
+    def add(button,button2):
+        clear(button,button2)
+        # print(selection[0])
+        if selection[0]==0:
+            w = tkinter.Canvas(window, width=200, height=30)
+            w.grid(columnspan=4)
+            w.create_line(0,15,200,15)
+            filter_type = tkinter.IntVar()
+            filter_type.set(1)
+            tkinter.Radiobutton(window, text='bandpass', variable=filter_type, value=1).grid(row=max_row,column=0)
+            tkinter.Radiobutton(window, text='bandstop', variable=filter_type, value=2).grid(row=max_row,column=1)
+            tkinter.Radiobutton(window, text='highpass', variable=filter_type, value=3).grid(row=max_row,column=2)
+            tkinter.Radiobutton(window, text='lowpass', variable=filter_type, value=4).grid(row=max_row,column=3)
+            tkinter.Radiobutton(window, text='band amp', variable=filter_type, value=5).grid(row=max_row+1,column=0)
+            filters.append(filter_type)
+        if selection[0]==1:
+            pass
+        if selection[0]==2:
+            pass
+        if selection[0]==3:
+            pass
     button = tkinter.Button(master = window, 
                      height = 2, 
                      width = 10,
-                     text = "Add")
-    button.grid()
+                     text = "Add",
+                     command=lambda:add(button,button2))
+    button.grid(columnspan=2)
+    button2 = tkinter.Button(master = window, 
+                     height = 2, 
+                     width = 10,
+                     text = "Cancel",
+                     command=lambda:clear(button,button2))
+    button2.grid(columnspan=2)
     def item_selected(event):
         selected_indices = lb.curselection()
-        print(selected_indices)
+        selection[0] = selected_indices[0]
+        # print(selected_indices)
+        # print(option)
+        # print(selection[0])
     lb.bind('<<ListboxSelect>>', item_selected)
 
 
@@ -178,6 +219,8 @@ filemenu = tkinter.Menu(menu)
 menu.add_cascade(label='File', menu=filemenu)
 filemenu.add_command(label='New', command=lambda:new_options(window))
 filemenu.add_command(label='Exit', command=window.quit)
+max_row = 7
+filters = []
 
 wave = tkinter.IntVar()
 wave.set(1)
